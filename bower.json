@@ -14,7 +14,6 @@
   "dependencies": {
     "purescript-aff": "^4.0.0",
     "purescript-node-http": "^4.0.0",
-    "purescript-foreign-generic": "^5.0.0",
     "purescript-typelevel-prelude": "^2.4.0",
     "purescript-record": "^0.2.3"
   }

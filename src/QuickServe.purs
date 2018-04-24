@@ -7,7 +7,6 @@ module QuickServe
   , class IsRequest
   , decodeRequest
   , requestType
-  , JSON(..)
   , Method(..)
   , GET
   , POST
@@ -21,7 +20,6 @@ module QuickServe
 
 import Prelude
 
-import Control.Comonad (extract)
 import Control.Monad.Aff (Aff, runAff)
 import Control.Monad.Aff.Class (class MonadAff)
 import Control.Monad.Eff (Eff)
@@ -31,12 +29,7 @@ import Control.Monad.Eff.Exception (Error, catchException, message)
 import Control.Monad.Eff.Ref (modifyRef, newRef, readRef)
 import Control.Monad.Eff.Ref.Unsafe (unsafeRunRef)
 import Control.Monad.Eff.Unsafe (unsafeCoerceEff)
-import Control.Monad.Except (runExcept)
-import Data.Bifunctor (bimap)
 import Data.Either (Either(..), either)
-import Data.Foreign (renderForeignError)
-import Data.Foreign.Class (class Decode, class Encode)
-import Data.Foreign.Generic (decodeJSON, encodeJSON)
 import Data.List (List(..), fromFoldable, (:))
 import Data.Maybe (Maybe(Nothing, Just), maybe)
 import Data.Monoid (mempty)
@@ -119,27 +112,6 @@ class IsRequest request where
 instance isRequestString :: IsRequest String where
   decodeRequest = Right
   requestType _ = "text/plain"
-
--- | A request/response type which uses JSON as its
--- | data representation.
-newtype JSON a = JSON a
-
-derive instance newtypeJSON :: Newtype (JSON a) _
-
-instance isResponseJSON :: Encode a => IsResponse (JSON a) where
-  encodeResponse =
-    encodeResponse
-    <<< encodeJSON
-    <<< unwrap
-  responseType _ = "application/json"
-
-instance isRequestJSON :: Decode a => IsRequest (JSON a) where
-  decodeRequest =
-    bimap (renderForeignError <<< extract) JSON
-    <<< runExcept
-    <<< decodeJSON
-    <=< decodeRequest
-  requestType _ = "application/json"
 
 -- | A `Servable` type constructor which indicates the expected
 -- | method (GET, POST, PUT, etc.) using a type-level string.
